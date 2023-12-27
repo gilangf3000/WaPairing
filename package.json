@@ -1,0 +1,34 @@
+{
+  "name": "wapairing",
+  "version": "1.0.0",
+  "description": "whatsapp pairingcode simple",
+  "main": "index.js",
+  "scripts": {
+    "test": "test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gilangf3000/WaPairing.git"
+  },
+  "keywords": [
+    "whatsappbot",
+    "whatsappbaileys",
+    "pairingcode",
+    "gilangf3000"
+  ],
+  "author": "gilangf3000",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gilangf3000/WaPairing/issues"
+  },
+  "homepage": "https://github.com/gilangf3000/WaPairing#readme",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.5.0",
+    "extra": "^0.2.1",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^11.2.0",
+    "path": "^0.12.7",
+    "pino": "^8.17.2",
+    "readline": "^1.3.0"
+  }
+}
