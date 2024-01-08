@@ -7,6 +7,7 @@ const pino = require('pino')
 const path = require('path')
 const fs = require('fs-extra')
 const readline = require('readline')
+const glob = require("glob");
 
 // Session
 global.session = 'auth'
@@ -86,21 +87,90 @@ async function WaConnect() {
                 ? m.message.imageMessage.caption
                 : "";
         if (!msgText.startsWith(".")) return;
-        const command = msgText.replace(/^\./g, "");
+        const command = msgText.replace(/^\./g, '').trim().split(/ +/).shift().toLowerCase()
+        const full_args = msgText.replace(command, '').slice(1).trim()
+        const args = msgText.trim().split(/ +/).slice(1)
         const from = m.key.remoteJid;
-
-        switch (command.toLowerCase()) {
-            case "ping":
-                reply("Pong!");
-                break;
-            case "image":
-                socket.sendMessage(
-                    from,
-                    { image: { url: "./thumb.jpg" }, mimeType: "image/png", caption: '             Jangan Lupa Subscribe @gilangf3000\n                             Creator @6285786340290', mentions: ['6285786340290@s.whatsapp.net'] },
-                    { quoted: m }
-                );
-                break;
+       
+        function loadPlugins() {
+            const pluginFiles = glob.sync(path.join(__dirname, 'plugin', '**/*.js'));
+            const plugins = {};
+        
+            pluginFiles.forEach((file) => {
+                const plugin = require(file);
+        
+                // Check if plugin.cmd is an array
+                if (Array.isArray(plugin.cmd)) {
+                    // If it's an array, iterate through each command and add it to the plugins object
+                    plugin.cmd.forEach((cmd) => {
+                        plugins[cmd] = plugin;
+                    });
+                } else {
+                    // Use plugin.cmd as a key in the plugins object
+                    plugins[plugin.cmd] = plugin;
+                }
+            });
+        
+            return plugins;
         }
+        
+        const plugins = loadPlugins();
+        
+        // Check if the command exists in the plugins object
+        if (Array.isArray(plugins[command])) {
+            // If it's an array, you might want to handle each command in the array
+            plugins[command].forEach((plugin) => {
+                console.log(plugin)
+            });
+        } else if (plugins[command]) {
+            // Execute the code for the corresponding plugin
+            const {
+              name,
+              cmd, 
+              details,
+              
+            } = plugins[command]
+            
+            const isPrivate = plugins[command].isPrivate ? plugins[command].isPrivate : false;
+            const isGroup = plugins[command].isGroup ? plugins[command].isGroup : false;
+            // console.log(isPrivate, from.endsWith('@g.us'))
+            
+            if (isPrivate === true && from.endsWith('@g.us')) {
+              socket.sendMessage(from, {text :'Fitur Ini Hanya Bisa Di Gunakan Di Private!'}, {quoted: m})
+              return
+            }
+            if(isGroup === true && from.endsWith('@s.whatsapp.net')){
+              socket.sendMessage(from, {text : 'Fitur Ini Hanya Bisa Di Gunakan Di Group!'}, {quoted: m})
+              return
+            }
+            // console.log(from)
+
+            plugins[command].code({
+              socket,
+              details,
+              from,
+              m,
+              full_args,
+              args
+            })
+            // console.log(plugins[command])
+        } else {
+            console.log('no cmd');
+        }
+    
+
+        // switch (command.toLowerCase()) {
+//             case "ping":
+//                 reply("Pong!");
+//                 break;
+//             case "image":
+//                 socket.sendMessage(
+//                     from,
+//                     { image: { url: "./thumb.jpg" }, mimeType: "image/png", caption: '             Jangan Lupa Subscribe @gilangf3000\n                             Creator @6285786340290', mentions: ['6285786340290@s.whatsapp.net'] },
+//                     { quoted: m }
+//                 );
+//                 break;
+//         }
     })
   }catch(err){
     console.log(err)
