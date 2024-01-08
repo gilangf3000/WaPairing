@@ -155,7 +155,7 @@ async function WaConnect() {
             })
             // console.log(plugins[command])
         } else {
-            console.log('no cmd');
+            console.log('Command Not Found!');
         }
     
 
