@@ -1,6 +1,6 @@
 /*
  * Owner: gilangf3000
- * Project: WaPairing Bot
+ * Project: WaPairing
  * Website: https://wapairing.dpdns.org
  * Year: 2026
  * License: Free distribution allowed with source and credit
