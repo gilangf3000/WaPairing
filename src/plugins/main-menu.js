@@ -11,7 +11,7 @@
 import { config } from '../config.js';
 
 export async function handler({ socket, m, msg, plugins }) {
-    const thumbnailPath = 'https://files.catbox.moe/mv52cw.png';
+    const thumbnailUrl = 'https://pomf2.lain.la/f/ab5ox9h5.jpg';
 
     const categories = {};
     const processedCommands = new Set();
@@ -41,9 +41,7 @@ export async function handler({ socket, m, msg, plugins }) {
 
     for (const category of sortedCategories) {
         menuText += `┌─「 *${category.toUpperCase()}* 」\n`;
-        menuText += `│ ${categories[category]
-            .map(cmd => `${config.prefix}${cmd}`)
-            .join('\n│ ')}\n`;
+        menuText += `│ ${categories[category].map(cmd => `${config.prefix}${cmd}`).join('\n│ ')}\n`;
         menuText += `└────\n\n`;
     }
 
@@ -53,7 +51,7 @@ export async function handler({ socket, m, msg, plugins }) {
         await socket.sendMessage(
             m.chat,
             {
-                image: { url: thumbnailPath },
+                image: { url: thumbnailUrl },
                 caption: menuText,
                 mimetype: 'image/jpeg'
             },
@@ -61,7 +59,11 @@ export async function handler({ socket, m, msg, plugins }) {
         );
     } catch (e) {
         console.error('Error sending menu:', e);
-        m.reply('Failed to display menu. Make sure the file `thumbnail.png` exists.');
+        await socket.sendMessage(
+            m.chat,
+            { text: menuText },
+            { quoted: msg }
+        );
     }
 }
 
