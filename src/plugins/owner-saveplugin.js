@@ -20,8 +20,8 @@ export async function handler({ m, args, prefix, command }) {
     let filename = args[0];
     if (!filename.endsWith('.js')) filename += '.js';
 
-    let code = args.slice(1).join(' ');
-
+    let code = m.text.slice((prefix + command + ' ' + args[0]).length).trim()
+    
     if (!code) {
         if (m.quoted?.text) {
             code = m.quoted.text;
