@@ -13,13 +13,28 @@ import { Buffer } from 'buffer'
 
 function normalizeJid(jid) {
   if (!jid) return null
-  return jid.split(':')[0]
+  return jid.replace(/:\d+(?=@)/, '')
+}
+
+function isLidJid(jid) {
+  return typeof jid === 'string' && jid.endsWith('@lid')
+}
+
+function pickPreferredJid(primary, alternate) {
+  if (primary && !isLidJid(primary)) return primary
+  if (alternate && !isLidJid(alternate)) return alternate
+  return primary || alternate || null
 }
 
 function isOwner(sender) {
   if (!sender) return false
   const senderJid = normalizeJid(sender)
-  return config.owner.some(user => normalizeJid(user.jid) === senderJid)
+  return config.owner.some(user => {
+    const ownerJid = user.jid?.includes('@')
+      ? user.jid
+      : `${user.jid}@s.whatsapp.net`
+    return normalizeJid(ownerJid) === senderJid
+  })
 }
 
 async function downloadMedia(message) {
@@ -36,7 +51,7 @@ async function downloadMedia(message) {
   return buffer
 }
 
-export default function serialize(m, socket) {
+export default async function serialize(m, socket) {
   if (!m) return m
 
   const M = {}
@@ -45,16 +60,15 @@ export default function serialize(m, socket) {
     M.id = m.key.id
     M.isBaileys = M.id?.startsWith('BAE5') && M.id.length === 16
 
-    M.chat = m.key.remoteJidAlt || m.key.remoteJid
+    M.chat = pickPreferredJid(m.key.remoteJid, m.key.remoteJidAlt)
     M.fromMe = m.key.fromMe
     M.isGroup = M.chat?.endsWith('@g.us')
     M.pushName = m.pushName || ''
 
-    const participant =
-      m.key.participantAlt ||
-      m.key.participant ||
-      m.key.remoteJidAlt ||
-      m.key.remoteJid
+    const participant = pickPreferredJid(
+      m.key.participant || m.key.remoteJid,
+      m.key.participantAlt || m.key.remoteJidAlt
+    )
 
     M.sender = M.fromMe
       ? normalizeJid(socket.user.id)
@@ -104,6 +118,20 @@ export default function serialize(m, socket) {
   }
 
   M.isOwner = isOwner(M.sender)
+  M.isAdmin = false
+  M.isBotAdmin = false
+
+  if (M.isGroup) {
+    const metadata = await socket.groupMetadata(M.chat).catch(() => null)
+    const participants = metadata?.participants || []
+    const adminIds = new Set(
+      participants
+        .filter(member => member.admin)
+        .map(member => normalizeJid(member.id))
+    )
+    M.isAdmin = adminIds.has(normalizeJid(M.sender))
+    M.isBotAdmin = adminIds.has(normalizeJid(socket.user?.id))
+  }
 
   return M
 }

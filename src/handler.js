@@ -77,7 +77,7 @@ export async function handler(m, socket) {
   const msg = m.messages?.[0]
   if (!msg?.message) return
 
-  const M = serialize(msg, socket)
+  const M = await serialize(msg, socket)
 
   if (!M.isOwner && config.bannedUsers.has(M.sender)) return
   if (M.isGroup && config.bannedGroups.has(M.chat)) return

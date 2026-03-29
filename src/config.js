@@ -9,7 +9,7 @@
 
 export const config = {
     owner: [
-        { jid: '0@s.whatsapp.net', name: 'gilangf3000' }
+        { jid: '0', name: 'gilangf3000' }
     ],
     botName: 'WaPairing',
     prefix: '.',

@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/gilangf3000/WaPairing#readme",
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@whiskeysockets/baileys": "github:gilangf3000/bailis",
     "axios": "^1.13.2",
     "buffer": "^6.0.3",
     "canvas": "^3.2.0",
