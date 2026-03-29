@@ -15,6 +15,19 @@ import { handler } from './handler.js'
 import * as logger from './lib/logger.js'
 import { sleep } from './lib/sleep.js'
 
+const suppressLibsignalNoise = () => {
+    const shouldIgnore = (arg) => typeof arg === 'string' && arg.startsWith('Closing session:')
+    const wrap = (method) => (...args) => {
+        if (args.length > 0 && shouldIgnore(args[0])) return
+        method(...args)
+    }
+
+    console.log = wrap(console.log)
+    console.info = wrap(console.info)
+    console.warn = wrap(console.warn)
+    console.error = wrap(console.error)
+}
+
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const question = (question) => rl.question(question)
 
@@ -22,6 +35,7 @@ const pinoStream = PinoPretty({ colorize: true, ignore: 'pid,hostname', translat
 const pinoLogger = pino({ level: 'silent' }, pinoStream)
 
 async function connectWaPairing() {
+    suppressLibsignalNoise()
     const { state, saveCreds } = await useMultiFileAuthState('session')
     const { version, isLatest } = await fetchLatestBaileysVersion()
     logger.info(`Using Baileys version ${version} isLatest ${isLatest}`)
